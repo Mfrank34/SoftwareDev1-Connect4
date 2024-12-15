@@ -4,7 +4,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public Board gameBoard;
     private bool isPlayerTurn = true;  //tracks players turn
@@ -70,6 +70,7 @@ public class GameManager : MonoBehaviour
     {
         gameBoard.UpdateBoard(Column, isPlayer); //update board on server
         updateBoardOnClients(); //sync with client
+        checkGameOver();
     }
 
     [ClientRpc]
@@ -95,6 +96,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+void checkGameOver()
+{
+    if (gameBoard.result(isPlayerTurnNetwork.Value))
+    {
+        Debug.Log(isPlayerTurnNetwork.Value ? "You Win!" : "opponenet wins!"); //if player wins print you win else opponent wins
+
+        //displaying win message
+        turnMessage.text = isPlayerTurnNetwork.Value ? "Player Wins!" : "Opponenet Wins!";
+        turnMessage.color = isPlayerTurnNetwork.Value ? RED_COLOR : YELLOW_COLOR;
+        hasGameFinished = true;
+    }
+}
 
     public void GameStart()
     {

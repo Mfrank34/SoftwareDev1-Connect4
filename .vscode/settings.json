@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Connect 4 Unity.sln"
+    "dotnet.defaultSolution": "SoftwareDev1-Connect4.sln"
 }
