@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class GameManager : NetworkBehaviour
 {
@@ -11,9 +12,12 @@ public class GameManager : NetworkBehaviour
     private bool GameStarted = false;
 
     public NetworkVariable<bool> isPlayerTurnNetwork = new NetworkVariable<bool>(true);  //syncs the turns
+    
 
     [SerializeField]
-    GameObject red, Yellow;
+    public GameObject red, Yellow;
+
+    public Column[] columns;
 
     bool isPlayer, hasGameFinished;
 
@@ -27,6 +31,42 @@ public class GameManager : NetworkBehaviour
     Color YELLOW_COLOR = new Color(0, 222, 1, 255) / 255;
 
     Board myBoard;
+
+
+    private void onEnable()
+    {
+        playerBoardNetwork.OnValueChanged += OnPlayerBoardChanged;
+    }
+
+    private void OnDisable()
+    {
+        playerBoardNetwork.OnValueChanged -= OnPlayerBoardChanged;
+    }
+
+    private void OnPlayerBoardChanged(PlayerType[] oldBoard, PlayerType[] newBoard)
+    {
+        // Use flattened array to update visual of game board
+        for (int i = 0; i < 6; i++) // Iterate through the rows
+        {
+            for (int j = 0; j < 7; j++) // Iterate through the columns
+            {
+                PlayerType currentPlayer = newBoard[i * 7 + j];
+                if (currentPlayer != PlayerType.NONE)
+                {
+                    // Find the column object based on the column index
+                    Column column = columns[j];
+                    if (column != null)
+                    {
+                        // Calculate spawn position for the counter
+                        Vector3 spawnPos = column.spawnLocation + new Vector3(0, i * 0.7f, 0);  
+                        GameObject counter = Instantiate(currentPlayer == PlayerType.RED ? red : Yellow);
+                        counter.transform.position = spawnPos;
+                    }
+                }
+            }
+        }
+    }
+
 
 
     private void Awake()
