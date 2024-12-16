@@ -3,21 +3,11 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
-public class GameManager : NetworkBehaviour
+public class GameManager : MonoBehaviour
 {
-    public Board gameBoard;
-    private bool isPlayerTurn = true;  //tracks players turn
-    private bool GameStarted = false;
-
-    public NetworkVariable<bool> isPlayerTurnNetwork = new NetworkVariable<bool>(true);  //syncs the turns
-    
-
     [SerializeField]
-    public GameObject red, Yellow;
-
-    public Column[] columns;
+    GameObject red, Yellow;
 
     bool isPlayer, hasGameFinished;
 
@@ -33,42 +23,6 @@ public class GameManager : NetworkBehaviour
     Board myBoard;
 
 
-    private void onEnable()
-    {
-        playerBoardNetwork.OnValueChanged += OnPlayerBoardChanged;
-    }
-
-    private void OnDisable()
-    {
-        playerBoardNetwork.OnValueChanged -= OnPlayerBoardChanged;
-    }
-
-    private void OnPlayerBoardChanged(PlayerType[] oldBoard, PlayerType[] newBoard)
-    {
-        // Use flattened array to update visual of game board
-        for (int i = 0; i < 6; i++) // Iterate through the rows
-        {
-            for (int j = 0; j < 7; j++) // Iterate through the columns
-            {
-                PlayerType currentPlayer = newBoard[i * 7 + j];
-                if (currentPlayer != PlayerType.NONE)
-                {
-                    // Find the column object based on the column index
-                    Column column = columns[j];
-                    if (column != null)
-                    {
-                        // Calculate spawn position for the counter
-                        Vector3 spawnPos = column.spawnLocation + new Vector3(0, i * 0.7f, 0);  
-                        GameObject counter = Instantiate(currentPlayer == PlayerType.RED ? red : Yellow);
-                        counter.transform.position = spawnPos;
-                    }
-                }
-            }
-        }
-    }
-
-
-
     private void Awake()
     {
         isPlayer = true;
@@ -78,76 +32,6 @@ public class GameManager : NetworkBehaviour
         myBoard = new Board();
     }
 
-    //start game by hosting or joining
-    public void hostGame(bool isHost)
-    {
-        //if hosting
-        if (isHost)
-        {
-            NetworkManager.Singleton.StartHost();
-        }
-        else
-        {
-            NetworkManager.Singleton.StartClient(); //join as client
-        }
-        GameStarted = true;
-    }
-
-    public void onPlayerMove(int Column)
-    {
-        if (!GameStarted) return;
-
-        //only allows player with turn to make a move
-        if (isPlayerTurnNetwork.Value)
-        {
-            updateBoardOnServer(Column, isPlayerTurnNetwork.Value);
-            isPlayerTurnNetwork.Value = false; //switches turns
-        }
-    }
-
-    [ServerRpc]
-    private void updateBoardOnServer(int Column, bool isPlayer)
-    {
-        gameBoard.UpdateBoard(Column, isPlayer); //update board on server
-        updateBoardOnClients(); //sync with client
-        checkGameOver();
-    }
-
-    [ClientRpc]
-    private void updateBoardOnClients()
-    {
-        //update the board on clients
-        for (int row = 0; row < 6; row++)
-        {
-            for (int col = 0; col < 7; col++)
-            {
-                if (gameBoard.playerBoard[row][col] != PlayerType.NONE)
-                {
-                    GameObject columnObj = GameObject.FindGameObjectsWithTag("Collumn");
-                    Column column = columnObj.GetComponent<Collumn>();
-                    if (column != null)
-                    {
-                        Vector3 spawnPos = column.spawnLocation + new Vector3(0, row * 0.7f, 0); // Adjust spawn height
-                        GameObject counter = Instantiate(gameBoard.playerBoard[row][col] == PlayerType.RED ? red : Yellow);
-                        counter.transform.position = spawnPos;
-                    }
-                }
-            }
-        }
-    }
-
-void checkGameOver()
-{
-    if (gameBoard.result(isPlayerTurnNetwork.Value))
-    {
-        Debug.Log(isPlayerTurnNetwork.Value ? "You Win!" : "opponenet wins!"); //if player wins print you win else opponent wins
-
-        //displaying win message
-        turnMessage.text = isPlayerTurnNetwork.Value ? "Player Wins!" : "Opponenet Wins!";
-        turnMessage.color = isPlayerTurnNetwork.Value ? RED_COLOR : YELLOW_COLOR;
-        hasGameFinished = true;
-    }
-}
 
     public void GameStart()
     {
