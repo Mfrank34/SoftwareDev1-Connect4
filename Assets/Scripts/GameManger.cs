@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
 
     public void GameStart()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GamePlay");
     }
 
     public void GameQuit()
