@@ -13,32 +13,25 @@ public class Board
 
     public Board()
     {
-        // Error checking | on god i hate this 
-        Debug.Log("Board Function! | Run ");
-
-        // Initialize the player board with empty values
         playerBoard = new PlayerType[6][];
         for (int i = 0; i < playerBoard.Length; i++)
         {
-            playerBoard[i] = new PlayerType[7];  // 7 columns in each row
+            playerBoard[i] = new PlayerType[7];  // 7 columns
             for (int j = 0; j < playerBoard[i].Length; j++)
             {
-                playerBoard[i][j] = PlayerType.NONE;  // Set all positions to NONE (empty)
+                playerBoard[i][j] = PlayerType.NONE;  // Empty
             }
         }
-        currentPos = new GridPos { row = -1, col = -1 };  // Initialize to invalid position
+        currentPos = new GridPos { row = -1, col = -1 };  // Invalid position to start
     }
 
-    // Function to update the board with the current move
+    // Update the board with the current move
     public bool UpdateBoard(int col, bool isPlayer)
     {
-        // Debugging code | what a shock!
-        Debug.Log("Updating board | Run");
-
         int updatePos = -1;
 
-        // Find the first empty row in the selected column (starting from the bottom)
-        for (int i = 5; i >= 0; i--)
+        // Find the first available row in the selected column (from bottom to top)
+        for (int i = 5; i >= 0; i--)  // Start from bottom (row 5)
         {
             if (playerBoard[i][col] == PlayerType.NONE)
             {
@@ -49,126 +42,93 @@ public class Board
 
         if (updatePos == -1)
         {
-            Debug.LogError($"Column {col} is full. Cannot update board.");
-            return false; // Column is full
+            Debug.LogError($"Column {col} is full. Cannot place a token.");
+            return false;  // Column is full
         }
 
-        // Update the board with the player's piece (Red or Yellow)
+        // Place the token in the found row and column
         playerBoard[updatePos][col] = isPlayer ? PlayerType.RED : PlayerType.YELLOW;
-        currentPos = new GridPos { row = updatePos, col = col };  // Update current position
-        return true;  // Move was successfully made
+        currentPos = new GridPos { row = updatePos, col = col };  // Update position
+        return true;
     }
 
-    // Function to check if the game is over (win or tie)
+    // Check if there is a winning condition
     public bool Result(bool isPlayer)
     {
-        // Result log | driving me up a wall!
-        Debug.Log("Results debug | Run");
-
         if (currentPos.row < 0 || currentPos.row >= 6 || 
             currentPos.col < 0 || currentPos.col >= 7)
         {
-            Debug.LogError("Current position is invalid. Cannot check result.");
+            Debug.LogError("Current position is invalid. Cannot check for a result.");
             return false;
         }
 
         PlayerType current = isPlayer ? PlayerType.RED : PlayerType.YELLOW;
 
-        // Check all four directions for a winning sequence
+        // Check for 4 in a row in all directions (horizontal, vertical, diagonal)
         return CheckDirection(new GridPos { row = 0, col = 1 }, current) ||  // Horizontal
                CheckDirection(new GridPos { row = 1, col = 0 }, current) ||  // Vertical
                CheckDirection(new GridPos { row = 1, col = 1 }, current) ||  // Diagonal
                CheckDirection(new GridPos { row = 1, col = -1 }, current);   // Reverse Diagonal
     }
 
-    // Function to check if the board is full (indicating a tie)
-    public bool IsBoardFull()
+    // Check the direction for a winning sequence (e.g., horizontal, vertical)
+    private bool CheckDirection(GridPos direction, PlayerType current)
     {
-        // doesnt work from what i can tell!! | MF
-        Debug.Log("Function Board is full | Run");
-
-        // Check if the top row has any empty spots
-        for (int col = 0; col < 7; col++)
-        {
-            if (playerBoard[0][col] == PlayerType.NONE)  // Top row has empty spots
-                return false;
-        }
-        return true;  // Board is full
-    }
-
-    // Helper function to check a given direction for a winning sequence
-    bool CheckDirection(GridPos diff, PlayerType current)
-    {
-        // Direction check
-        Debug.Log("Checking Direction | Run");
-
-        GridPos start = GetEndPoint(new GridPos { row = -diff.row, col = -diff.col });
-        List<GridPos> toSearchList = GetPlayerList(start, diff);
+        GridPos start = GetEndPoint(new GridPos { row = -direction.row, col = -direction.col });
+        List<GridPos> toSearchList = GetPlayerList(start, direction);
         return SearchResult(toSearchList, current);
     }
 
-    // Helper function to get the farthest valid position in a given direction
-    GridPos GetEndPoint(GridPos diff)
+    // Get the farthest valid position in a given direction
+    private GridPos GetEndPoint(GridPos direction)
     {
-        Debug.Log("End of life check | Run");
         GridPos result = new GridPos { row = currentPos.row, col = currentPos.col };
-        while (result.row + diff.row < 6 &&
-               result.col + diff.col < 7 &&
-               result.row + diff.row >= 0 &&
-               result.col + diff.col >= 0 &&
-               playerBoard[result.row + diff.row][result.col + diff.col] ==
-               playerBoard[currentPos.row][currentPos.col])  // Stop if the player type doesn't match
+        while (result.row + direction.row < 6 &&
+               result.col + direction.col < 7 &&
+               result.row + direction.row >= 0 &&
+               result.col + direction.col >= 0 &&
+               playerBoard[result.row + direction.row][result.col + direction.col] == playerBoard[currentPos.row][currentPos.col])
         {
-            result.row += diff.row;
-            result.col += diff.col;
+            result.row += direction.row;
+            result.col += direction.col;
         }
         return result;
     }
 
-    // Helper function to get a list of all positions along the line in the given direction
-    List<GridPos> GetPlayerList(GridPos start, GridPos diff)
+    // Get all positions along the line in the given direction
+    private List<GridPos> GetPlayerList(GridPos start, GridPos direction)
     {
-        // support function 
-        Debug.Log("Player Listing | Run");
-
         List<GridPos> resList = new List<GridPos> { start };
         GridPos result = new GridPos { row = start.row, col = start.col };
-        while (result.row + diff.row < 6 &&
-               result.col + diff.col < 7 &&
-               result.row + diff.row >= 0 &&
-               result.col + diff.col >= 0)
+        while (result.row + direction.row < 6 &&
+               result.col + direction.col < 7 &&
+               result.row + direction.row >= 0 &&
+               result.col + direction.col >= 0)
         {
-            result.row += diff.row;
-            result.col += diff.col;
+            result.row += direction.row;
+            result.col += direction.col;
             resList.Add(result);
         }
-
         return resList;
     }
 
-    // Helper function to check if there are 4 consecutive pieces in the list
-    bool SearchResult(List<GridPos> searchList, PlayerType current)
+    // Check for 4 consecutive tokens in the list
+    private bool SearchResult(List<GridPos> searchList, PlayerType current)
     {
-        // searching results | welcome to the underground of code i guess
-        Debug.Log("Seaching results | Run");
-
         int counter = 0;
-
-        for (int i = 0; i < searchList.Count; i++)
+        foreach (var pos in searchList)
         {
-            PlayerType compare = playerBoard[searchList[i].row][searchList[i].col];
-            if (compare == current)
+            if (playerBoard[pos.row][pos.col] == current)
             {
                 counter++;
                 if (counter == 4)
-                    break;
+                    return true;
             }
             else
             {
-                counter = 0;  // Reset if the sequence is broken
+                counter = 0;
             }
         }
-
-        return counter >= 4;  // Return true if there are 4 consecutive pieces
+        return false;
     }
 }
