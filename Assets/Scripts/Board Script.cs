@@ -63,7 +63,7 @@ public class Board
     public bool Result(bool isPlayer)
     {
         // Result log | driving me up a wall!
-        Debug.Log("Results debug | Run ");
+        Debug.Log("Results debug | Run");
 
         if (currentPos.row < 0 || currentPos.row >= 6 || 
             currentPos.col < 0 || currentPos.col >= 7)
@@ -87,6 +87,7 @@ public class Board
         // doesnt work from what i can tell!! | MF
         Debug.Log("Function Board is full | Run");
 
+        // Check if the top row has any empty spots
         for (int col = 0; col < 7; col++)
         {
             if (playerBoard[0][col] == PlayerType.NONE)  // Top row has empty spots

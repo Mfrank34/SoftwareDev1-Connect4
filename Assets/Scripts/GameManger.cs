@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// if you reading this kill me!
+
 public class GameManager : MonoBehaviour
 {
     [SerializeField]
@@ -12,7 +14,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     Text turnMessage;
-    
 
     const string RED_MESSAGE = "Red's Turn";
     const string YELLOW_MESSAGE = "Yellow's Turn";
@@ -23,24 +24,43 @@ public class GameManager : MonoBehaviour
     Board myBoard;
 
     // Cooldown time between player inputs (in seconds)
-    [SerializeField]    
+    [SerializeField]
     float cooldownTime = 0.5f;
     float timeSinceLastMove;
 
+    // A list to track dynamically spawned tokens
+    List<GameObject> spawnedTokens = new List<GameObject>();
+
     private void Awake()
     {
-        isPlayer = true;
-        hasGameFinished = false;
-        turnMessage.text = RED_MESSAGE;
-        turnMessage.color = RED_COLOR;
-        myBoard = new Board();
-        timeSinceLastMove = cooldownTime; // Initialize to allow the first move immediately
+        InitializeGame();
     }
 
     public void GameStart()
     {
-        // resets the board
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        // Clear all dynamically spawned game objects
+        foreach (GameObject token in spawnedTokens)
+        {
+            Debug.Log("Destroying token: " + token.name);  // Log token destruction for debugging
+            Destroy(token);
+        }   
+        spawnedTokens.Clear();
+
+        // Reset the game state
+        InitializeGame();
+    }
+
+// Reset the game Properly IK, im dum ass
+    private void InitializeGame()
+    {
+        isPlayer = true;
+        hasGameFinished = false;
+
+        turnMessage.text = RED_MESSAGE;
+        turnMessage.color = RED_COLOR;
+
+        myBoard = new Board(); // Reset the board to a new instance
+        timeSinceLastMove = cooldownTime; // Allow the first move immediately
     }
 
     public void GameQuit()
@@ -51,6 +71,7 @@ public class GameManager : MonoBehaviour
         Application.Quit();
     }
 
+// starting to hate...
     private void Update()
     {
         // Only allow input if enough time has passed since the last move
@@ -60,31 +81,38 @@ public class GameManager : MonoBehaviour
             {
                 // If the game has finished, do nothing
                 if (hasGameFinished) return;
-            
+
                 // Raycast2D to detect mouse position
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
 
                 if (!hit.collider) return;
-                
+
                 if (hit.collider.CompareTag("Press"))
                 {
-                    // Check if the column is full (out of bounds)
-                    if (hit.collider.gameObject.GetComponent<Column>().targetlocation.y > 1.5f) return;
+                    // Get the column component
+                    Column column = hit.collider.gameObject.GetComponent<Column>();
 
+                    // Check if the column is full (out of bounds)
+                    if (column.targetlocation.y > 1.5f) return;
                     // Spawn the GameObject (Red or Yellow)
-                    Vector3 spawnPos = hit.collider.gameObject.GetComponent<Column>().spawnLocation;
-                    Vector3 targetPos = hit.collider.gameObject.GetComponent<Column>().targetlocation;
-                    GameObject circle = Instantiate(isPlayer ? red : Yellow);
-                    circle.transform.position = spawnPos;
-                    circle.GetComponent<Mover>().targetPostion = targetPos;
+                    Vector3 spawnPos = column.spawnLocation;
+                    Vector3 targetPos = column.targetlocation;
+                    GameObject circle = Instantiate(isPlayer ? red : Yellow, spawnPos, Quaternion.identity);
+
+                    // Set the target position for the Mover component
+                    Mover mover = circle.GetComponent<Mover>();
+                    mover.targetPostion = targetPos;  // Set the target position for the token
+
+                    // Add the token to the list of spawned tokens
+                    spawnedTokens.Add(circle);
 
                     // Update the target location for the column
-                    hit.collider.gameObject.GetComponent<Column>().targetlocation = new Vector3(targetPos.x, targetPos.y + 0.7f, targetPos.z);
+                    column.targetlocation = new Vector3(targetPos.x, targetPos.y + 0.7f, targetPos.z);
 
                     // Update the board with the player's move
-                    myBoard.UpdateBoard(hit.collider.gameObject.GetComponent<Column>().col - 1, isPlayer);
+                    myBoard.UpdateBoard(column.col - 1, isPlayer);
 
                     // Check if the player has won
                     if (myBoard.Result(isPlayer))
@@ -102,7 +130,7 @@ public class GameManager : MonoBehaviour
                     isPlayer = !isPlayer;
 
                     // Reset the cooldown timer
-                    timeSinceLastMove = 0f;  // Start the cooldown after a move
+                    timeSinceLastMove = 0f; // Start the cooldown after a move
                 }
             }
         }
@@ -113,6 +141,3 @@ public class GameManager : MonoBehaviour
         }
     }
 }
-
-    
-
