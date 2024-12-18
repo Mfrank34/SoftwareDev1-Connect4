@@ -13,6 +13,9 @@ public class Board
 
     public Board()
     {
+        // Error checking | on god i hate this 
+        Debug.Log("Board Function! | Run ");
+
         // Initialize the player board with empty values
         playerBoard = new PlayerType[6][];
         for (int i = 0; i < playerBoard.Length; i++)
@@ -29,6 +32,9 @@ public class Board
     // Function to update the board with the current move
     public bool UpdateBoard(int col, bool isPlayer)
     {
+        // Debugging code | what a shock!
+        Debug.Log("Updating board | Run");
+
         int updatePos = -1;
 
         // Find the first empty row in the selected column (starting from the bottom)
@@ -56,6 +62,9 @@ public class Board
     // Function to check if the game is over (win or tie)
     public bool Result(bool isPlayer)
     {
+        // Result log | driving me up a wall!
+        Debug.Log("Results debug | Run ");
+
         if (currentPos.row < 0 || currentPos.row >= 6 || 
             currentPos.col < 0 || currentPos.col >= 7)
         {
@@ -75,6 +84,9 @@ public class Board
     // Function to check if the board is full (indicating a tie)
     public bool IsBoardFull()
     {
+        // doesnt work from what i can tell!! | MF
+        Debug.Log("Function Board is full | Run");
+
         for (int col = 0; col < 7; col++)
         {
             if (playerBoard[0][col] == PlayerType.NONE)  // Top row has empty spots
@@ -86,6 +98,9 @@ public class Board
     // Helper function to check a given direction for a winning sequence
     bool CheckDirection(GridPos diff, PlayerType current)
     {
+        // Direction check
+        Debug.Log("Checking Direction | Run");
+
         GridPos start = GetEndPoint(new GridPos { row = -diff.row, col = -diff.col });
         List<GridPos> toSearchList = GetPlayerList(start, diff);
         return SearchResult(toSearchList, current);
@@ -94,6 +109,7 @@ public class Board
     // Helper function to get the farthest valid position in a given direction
     GridPos GetEndPoint(GridPos diff)
     {
+        Debug.Log("End of life check | Run");
         GridPos result = new GridPos { row = currentPos.row, col = currentPos.col };
         while (result.row + diff.row < 6 &&
                result.col + diff.col < 7 &&
@@ -111,6 +127,9 @@ public class Board
     // Helper function to get a list of all positions along the line in the given direction
     List<GridPos> GetPlayerList(GridPos start, GridPos diff)
     {
+        // support function 
+        Debug.Log("Player Listing | Run");
+
         List<GridPos> resList = new List<GridPos> { start };
         GridPos result = new GridPos { row = start.row, col = start.col };
         while (result.row + diff.row < 6 &&
@@ -129,6 +148,9 @@ public class Board
     // Helper function to check if there are 4 consecutive pieces in the list
     bool SearchResult(List<GridPos> searchList, PlayerType current)
     {
+        // searching results | welcome to the underground of code i guess
+        Debug.Log("Seaching results | Run");
+
         int counter = 0;
 
         for (int i = 0; i < searchList.Count; i++)

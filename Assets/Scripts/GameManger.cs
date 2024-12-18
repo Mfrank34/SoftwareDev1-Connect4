@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     Board myBoard;
 
     // Cooldown time between player inputs (in seconds)
-    [SerializeField]
+    [SerializeField]    
     float cooldownTime = 0.5f;
     float timeSinceLastMove;
 
@@ -39,8 +39,8 @@ public class GameManager : MonoBehaviour
 
     public void GameStart()
     {
+        // resets the board
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-
     }
 
     public void GameQuit()
@@ -60,14 +60,14 @@ public class GameManager : MonoBehaviour
             {
                 // If the game has finished, do nothing
                 if (hasGameFinished) return;
-
+            
                 // Raycast2D to detect mouse position
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
 
                 if (!hit.collider) return;
-
+                
                 if (hit.collider.CompareTag("Press"))
                 {
                     // Check if the column is full (out of bounds)
@@ -113,3 +113,6 @@ public class GameManager : MonoBehaviour
         }
     }
 }
+
+    
+

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Mover : MonoBehaviour
 {
-
     [SerializeField]
     float speed = 10f;
     public Vector3 targetPostion;
