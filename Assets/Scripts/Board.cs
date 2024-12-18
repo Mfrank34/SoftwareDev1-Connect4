@@ -11,7 +11,7 @@ public class Board
     PlayerType[][] playerBoard;
     GridPos currentPos;
 
-    public Board()
+    public void Board()
     {
         // Initialize the player board with empty values
         playerBoard = new PlayerType[6][];
@@ -23,34 +23,47 @@ public class Board
                 playerBoard[i][j] = PlayerType.NONE;  // Set all positions to NONE (empty)
             }
         }
-        currentPos = new GridPos { row = -1, col = -1 };  // Initialize to invalid position
+        // currentPos = new GridPos { row = -1, col = -1 };  // Initialize to invalid position
     }
 
-    // Function to update the board with the current move
-    public bool UpdateBoard(int col, bool isPlayer)
-    {
-        int updatePos = -1;
 
-        // Find the first empty row in the selected column (starting from the bottom)
+    // Function to update the board with the current move
+    public void UpdateBoard(int col, bool isPlayer)
+    {
+        int updatePos = -1;  // Start with no available position
+
+        // Check for an empty spot in the selected column
         for (int i = 5; i >= 0; i--)
         {
-            if (playerBoard[i][col] == PlayerType.NONE)
+            if (playerBoard[i][col] == PlayerType.NONE)  // If the spot is empty
             {
-                updatePos = i;
-                break;
+                updatePos = i;  // Save the row number
+                break;  // Stop looking
             }
         }
 
+        // If no empty spot is found (column is full)
         if (updatePos == -1)
         {
-            Debug.LogError($"Column {col} is full. Cannot update board.");
-            return false; // Column is full
+            Debug.LogError($"Column {col} is full.");
+            return false;  // Cannot make the move
         }
 
-        // Update the board with the player's piece (Red or Yellow)
+        // Place the player's piece in the found row
         playerBoard[updatePos][col] = isPlayer ? PlayerType.RED : PlayerType.YELLOW;
-        currentPos = new GridPos { row = updatePos, col = col };  // Update current position
-        return true;  // Move was successfully made
+
+        // Update the position of the last move
+        currentPos = new GridPos { row = updatePos, col = col };
+
+        return true;  // Move was successful
+    }
+
+    // Helper function to check a given direction for a winning sequence
+    bool CheckDirection(GridPos diff, PlayerType current)
+    {
+        GridPos start = GetEndPoint(new GridPos { row = -diff.row, col = -diff.col });
+        List<GridPos> toSearchList = GetPlayerList(start, diff);
+        return SearchResult(toSearchList, current);
     }
 
     // Function to check if the game is over (win or tie)
@@ -65,11 +78,32 @@ public class Board
 
         PlayerType current = isPlayer ? PlayerType.RED : PlayerType.YELLOW;
 
-        // Check all four directions for a winning sequence
-        return CheckDirection(new GridPos { row = 0, col = 1 }, current) ||  // Horizontal
-               CheckDirection(new GridPos { row = 1, col = 0 }, current) ||  // Vertical
-               CheckDirection(new GridPos { row = 1, col = 1 }, current) ||  // Diagonal
-               CheckDirection(new GridPos { row = 1, col = -1 }, current);   // Reverse Diagonal
+        // Check horizontal direction
+        if (CheckDirection(new GridPos { row = 0, col = 1 }, current))
+        {
+            return true;  // Player wins in horizontal direction
+        }
+
+        // Check vertical direction
+        if (CheckDirection(new GridPos { row = 1, col = 0 }, current))
+        {
+            return true;  // Player wins in vertical direction
+        }
+
+        // Check diagonal direction
+        if (CheckDirection(new GridPos { row = 1, col = 1 }, current))
+        {
+            return true;  // Player wins in diagonal direction
+        }
+
+        // Check reverse diagonal direction
+        if (CheckDirection(new GridPos { row = 1, col = -1 }, current))
+        {
+            return true;  // Player wins in reverse diagonal direction
+        }
+
+        // If no win is found, return false
+        return false;
     }
 
     // Function to check if the board is full (indicating a tie)
@@ -83,14 +117,7 @@ public class Board
         return true;  // Board is full
     }
 
-    // Helper function to check a given direction for a winning sequence
-    bool CheckDirection(GridPos diff, PlayerType current)
-    {
-        GridPos start = GetEndPoint(new GridPos { row = -diff.row, col = -diff.col });
-        List<GridPos> toSearchList = GetPlayerList(start, diff);
-        return SearchResult(toSearchList, current);
-    }
-
+   
     // Helper function to get the farthest valid position in a given direction
     GridPos GetEndPoint(GridPos diff)
     {
