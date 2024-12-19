@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     [SerializeField]
-    GameObject red, green;
+    GameObject red, yellow;
 
     bool isPlayer, hasGameFinished;
 
@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
                 //Spawn the GameObject
                 Vector3 spawnPos = hit.collider.gameObject.GetComponent<Column>().spawnLocation;
                 Vector3 targetPos = hit.collider.gameObject.GetComponent<Column>().targetlocation;
-                GameObject circle = Instantiate(isPlayer ? red : green);
+                GameObject circle = Instantiate(isPlayer ? red : yellow);
                 circle.transform.position = spawnPos;
                 circle.GetComponent<Mover>().targetPostion = targetPos;
 
